@@ -1,15 +1,33 @@
 import { useForm } from "react-hook-form"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import type { SignUpUserFormData } from "../types"
 
 export function SignUpPage(){
 
     const { register, handleSubmit, formState:{ errors, isSubmitting } } = useForm<SignUpUserFormData>()
 
+    // added by Jessie
+    const navigate = useNavigate()
+
     async function onSubmit(data: SignUpUserFormData){
         console.log(data)
-        //TODO API 
-        // Function of API - Post request to the API to create a new user with the provided data
+
+        // added by Jessie
+        const response = await fetch("http://localhost:3001/api/users", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        })
+
+        // added by Jessie
+        if (!response.ok) {
+            throw new Error("Registration failed")
+        }
+
+        // added by Jessie
+        navigate("/signin")
     }
 
     return(
