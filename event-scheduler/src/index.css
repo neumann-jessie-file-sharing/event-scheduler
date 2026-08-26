@@ -1,0 +1,35 @@
+@import "tailwindcss";
+@plugin "daisyui";
+
+@plugin "daisyui/theme" {
+  name: "event-scheduler";
+  default: true;
+  prefersdark: false;
+  color-scheme: light;
+
+  --color-base-100: oklch(99% 0.005 270);
+  --color-base-200: oklch(96% 0.008 270);
+  --color-base-300: oklch(91% 0.012 270);
+  --color-base-content: oklch(24% 0.03 270);
+
+  --color-primary: oklch(58% 0.22 275);
+  --color-primary-content: oklch(98% 0.01 275);
+
+  --color-secondary: oklch(67% 0.16 245);
+  --color-secondary-content: oklch(98% 0.01 245);
+
+  --color-accent: oklch(72% 0.14 190);
+  --color-accent-content: oklch(20% 0.03 190);
+
+  --color-neutral: oklch(30% 0.025 270);
+  --color-neutral-content: oklch(96% 0.01 270);
+
+  --color-info: oklch(70% 0.14 230);
+  --color-success: oklch(70% 0.16 155);
+  --color-warning: oklch(78% 0.16 80);
+  --color-error: oklch(64% 0.21 25);
+
+  --radius-selector: 0.75rem;
+  --radius-field: 0.75rem;
+  --radius-box: 1rem;
+}
