@@ -1,4 +1,5 @@
 import { useParams , Link , useNavigate} from "react-router-dom"
+import { useAuth } from "../context/AuthContext"
 import { mockEvents } from '../data/mocksEvents'
 import { mockCurrentUser } from "../data/mockCurrentUser"
 
@@ -6,10 +7,12 @@ import { mockCurrentUser } from "../data/mockCurrentUser"
 export function EventDetailsPage(){
     const { id: eventId } = useParams()
     const navigate = useNavigate()
+     const { isLoggedIn } = useAuth()
     const event = mockEvents.find((event) => event.id === Number(eventId))
     //TODO: Replace mockEvents with actual data events from function of API call
-    const isOrganizer = event?.organizerId === mockCurrentUser.id 
+    const canManageEvent = isLoggedIn && event?.organizerId === mockCurrentUser.id 
     //TODO: Replace with actual user ID from authentication context
+   
     
 
 
@@ -54,7 +57,7 @@ export function EventDetailsPage(){
                     </div>
                     <div className="card-actions mt-6 justify-between">
                         <Link to="/" className="btn btn-outline">Back</Link>
-                        {isOrganizer && (
+                        {canManageEvent && (
                             <div className="flex gap-2">
                                 <Link to={`/events/${event.id}/edit`} className="btn btn-secondary">Edit</Link>
                                 <button onClick={handleDeleteEvent} className="btn btn-error">Delete</button>

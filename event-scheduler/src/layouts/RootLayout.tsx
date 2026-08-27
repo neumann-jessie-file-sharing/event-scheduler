@@ -1,8 +1,21 @@
-import { Link, Outlet } from "react-router-dom"
+import { useState } from "react"
+import { Link, Outlet, useNavigate } from "react-router-dom"
+import { useAuth } from "../context/AuthContext"
+import {isTokenPresent, removeToken} from "../services/tokenStorage"
 
 
 
 export function RootLayout(){
+
+    const navigate = useNavigate()
+    const { isLoggedIn, logout } = useAuth()
+
+    function handleLogout(){
+        logout()
+        navigate("/")
+    }
+
+
     return(
         <div className="min-h-screen bg-base-200">
             <header className="navbar border-b border-base-300 bg-base-100">
@@ -13,8 +26,14 @@ export function RootLayout(){
                     <nav className="flex gap-2">
                         <Link to="/" className="btn btn-ghost">Events</Link>
                         <Link to="/events/create" className="btn btn-ghost">Create Event</Link>
-                        <Link to="/signin" className="btn btn-ghost">Sign In</Link>
-                        <Link to="/signup" className="btn btn-primary">Sign Up</Link>
+                        {!isLoggedIn ? (
+                            <>
+                                <Link to="/signin" className="btn btn-ghost">Sign In</Link>
+                                <Link to="/signup" className="btn btn-primary">Sign Up</Link>
+                            </>
+                        ) : (
+                            <button onClick={handleLogout} className="btn btn-ghost">Logout</button>
+                        )}
                     </nav>
                 </div>
             </header>
