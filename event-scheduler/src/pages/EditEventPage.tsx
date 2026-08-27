@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form"
 import { useAuth } from "../context/AuthContext"
 import { mockEvents } from "../data/mocksEvents"
 import type { CreateEventFormData } from "../types"
+import { updateEvent } from "../services/eventsApi" // added by Jessie
 
 
 export function EditEventPage(){
@@ -36,7 +37,10 @@ export function EditEventPage(){
 
         try {
             console.log(eventData)
-            //TODO: await updateEvent(event.id, eventData)
+
+            // added by Jessie
+            await updateEvent(event.id, eventData)
+
             navigate(`/events/${event.id}`)
         } catch (error) {
             console.error(error)

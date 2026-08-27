@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form"
 import { useNavigate } from "react-router-dom"
 import type { CreateEventFormData } from "../types"
+import { createEvent } from "../services/eventsApi" // added by Jessie
 
 
 export function CreateEventPage(){
@@ -18,8 +19,10 @@ export function CreateEventPage(){
 
         try {
             console.log(eventData)
-            // TODO: Send data to the server
-            //Later, await createEvent(eventData)
+
+            // added by Jessie
+            await createEvent(eventData)
+
             //Later, only after API call is successful, navigate to the events list page
             navigate("/")
 
