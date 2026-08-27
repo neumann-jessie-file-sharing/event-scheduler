@@ -1,15 +1,18 @@
 import { useForm } from "react-hook-form"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useNavigate, useLocation } from "react-router-dom"
 import type { SignInUserFormData } from "../types"
-import { saveToken } from "../services/tokenStorage"
+import { useAuth } from "../context/AuthContext"
 
 
 export function SignInPage(){
 
     const {register, handleSubmit, formState:{ errors, isSubmitting } } = useForm<SignInUserFormData>()
+    const { login } = useAuth()
 
     // added by Jessie
     const navigate = useNavigate()
+    const location = useLocation()
+    const from = location.state?.from?.pathname || "/"
 
     async function onSubmit(data: SignInUserFormData){
         console.log(data)
@@ -32,8 +35,8 @@ export function SignInPage(){
         const responseData = await response.json()
 
         // added by Jessie
-        saveToken(responseData.token)
-        navigate("/")
+        login(responseData.token)
+        navigate(from, { replace: true })
     }
 
     return(

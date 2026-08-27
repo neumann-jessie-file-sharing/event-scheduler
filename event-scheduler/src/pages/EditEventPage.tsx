@@ -1,6 +1,7 @@
 import { useNavigate, useParams, Navigate } from "react-router-dom"
 import { mockCurrentUser } from "../data/mockCurrentUser"
 import { useForm } from "react-hook-form"
+import { useAuth } from "../context/AuthContext"
 import { mockEvents } from "../data/mocksEvents"
 import type { CreateEventFormData } from "../types"
 
@@ -8,6 +9,7 @@ import type { CreateEventFormData } from "../types"
 export function EditEventPage(){
     const { id: eventId } = useParams()
     const navigate = useNavigate()
+    const { isLoggedIn } = useAuth()
 
     const event = mockEvents.find((event) => event.id === Number(eventId))
     //TODO: Replace mockEvents with actual data events from function of API call
@@ -53,8 +55,9 @@ export function EditEventPage(){
             </section>
         )
     }
-    if (event.organizerId !== mockCurrentUser.id) {
-        //TODO: Replace with actual user ID from authentication context
+    const canManageEvent = isLoggedIn && event.organizerId === mockCurrentUser.id
+    //TODO: Replace with actual user ID from authentication context
+    if (!canManageEvent) {
         return <Navigate to={`/events/${event.id}`} replace />
     }
     return (

@@ -51,7 +51,7 @@ export function SignUpPage(){
                     </fieldset>
                     <fieldset className="fieldset">
                         <legend className="fieldset-legend">Password</legend>
-                        <input type="password" placeholder="Password" className={`input w-full ${errors.password ? "input-error": ""}`} {...register("password", {required: "Password is required", minLength: {value: 6, message: "Password must be at least 6 characters long"}})}/>
+                        <input type="password" placeholder="Password" className={`input w-full ${errors.password ? "input-error": ""}`} {...register("password", {required: "Password is required", minLength: {value: 8, message: "Password must be at least 8 characters long"}})}/>
                         {errors.password && <p className="text-error text-sm">{errors.password.message}</p>}
                     </fieldset>
                     <button type="submit" className="btn btn-primary w-full" disabled={isSubmitting}>
