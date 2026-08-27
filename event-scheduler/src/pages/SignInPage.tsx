@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import type { SignInUserFormData } from "../types"
 import { saveToken } from "../services/tokenStorage"
 
@@ -8,14 +8,32 @@ export function SignInPage(){
 
     const {register, handleSubmit, formState:{ errors, isSubmitting } } = useForm<SignInUserFormData>()
 
+    // added by Jessie
+    const navigate = useNavigate()
+
     async function onSubmit(data: SignInUserFormData){
         console.log(data)
-        //TODO API 
-        // Function of API - Post request to the API to create a new user with the provided data
 
-        //const response = await login(data)
-        saveToken(response.data.token) //TODO: Replace with the actual token from the API response
-        //TODO: Save the token in local storage
+        // added by Jessie
+        const response = await fetch("http://localhost:3001/api/auth/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        })
+
+        // added by Jessie
+        if (!response.ok) {
+            throw new Error("Login failed")
+        }
+
+        // added by Jessie
+        const responseData = await response.json()
+
+        // added by Jessie
+        saveToken(responseData.token)
+        navigate("/")
     }
 
     return(
