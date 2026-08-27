@@ -1,12 +1,26 @@
+import { useEffect, useState } from "react" // added by Jessie
 import { EventCard } from '../components'
 import { sortDateEvents } from '../utils/sortDateEvents'
-import {mockEvents} from '../data/mocksEvents'
+import type { Event } from "../types" // added by Jessie
+import { getEvents } from "../services/eventsApi" // added by Jessie
 
 
 export function HomePage(){
 
-    const events = sortDateEvents(mockEvents) 
-    // TODO: Replace mockEvents with actual data events from function of API call
+    // added by Jessie
+    const [apiEvents, setApiEvents] = useState<Event[]>([])
+
+    // added by Jessie
+    useEffect(() => {
+        async function loadEvents(){
+            const data = await getEvents()
+            setApiEvents(data)
+        }
+
+        loadEvents()
+    }, [])
+
+    const events = sortDateEvents(apiEvents) // adapted by Jessie
 
     return(
         <section>

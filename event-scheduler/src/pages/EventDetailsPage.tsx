@@ -1,6 +1,7 @@
 import { useParams , Link , useNavigate} from "react-router-dom"
 import { mockEvents } from '../data/mocksEvents'
 import { mockCurrentUser } from "../data/mockCurrentUser"
+import { deleteEvent } from "../services/eventsApi" // added by Jessie
 
 
 export function EventDetailsPage(){
@@ -21,7 +22,10 @@ export function EventDetailsPage(){
         
         try {
             console.log(`Deleting event with ID: ${event.id}`)
-            //TODO: await deleteEvent(event.id)
+
+            // added by Jessie
+            await deleteEvent(event.id)
+
             //After successful deletion, navigate back to the events list page
             navigate("/")
 

@@ -3,6 +3,17 @@ import { getToken } from "./tokenStorage"
 
 const BASE_URL = "http://localhost:3001"
 
+// added by Jessie
+export async function getEvents(): Promise<Event[]> {
+  const response = await fetch(`${BASE_URL}/api/events`)
+
+  if (!response.ok) {
+    throw new Error(`Failed to load events (${response.status})`)
+  }
+
+  return response.json()
+}
+
 export async function createEvent(
   eventData: CreateEventFormData
 ): Promise<Event> {
@@ -32,4 +43,57 @@ export async function createEvent(
   }
 
   return data
+}
+
+// added by Jessie
+export async function updateEvent(
+  id: number,
+  eventData: Partial<CreateEventFormData>
+): Promise<Event> {
+  const token = getToken()
+
+  if (!token) {
+    throw new Error("You must be logged in to update an event")
+  }
+
+  const response = await fetch(`${BASE_URL}/api/events/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(eventData),
+  })
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(
+      data.message ||
+      data.error ||
+      `Failed to update event (${response.status})`
+    )
+  }
+
+  return data
+}
+
+// added by Jessie
+export async function deleteEvent(id: number): Promise<void> {
+  const token = getToken()
+
+  if (!token) {
+    throw new Error("You must be logged in to delete an event")
+  }
+
+  const response = await fetch(`${BASE_URL}/api/events/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error(`Failed to delete event (${response.status})`)
+  }
 }
