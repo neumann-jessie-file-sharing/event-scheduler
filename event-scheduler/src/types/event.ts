@@ -30,3 +30,12 @@ export type UpdateEventFormData = {
     longitude?: number
 
 }
+
+export type EventsResponse = {
+    totalCount: number
+    totalPages: number
+    currentPage: number
+    hasNextPage: boolean
+    hasPreviousPage: boolean
+    results: Event[]
+}

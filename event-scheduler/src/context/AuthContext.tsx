@@ -1,9 +1,14 @@
-import { createContext, useContext, useState, type ReactNode } from "react"
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import { getToken, removeToken, saveToken } from "../services/tokenStorage"
+import type { User } from "../types"
+import { getProfile } from "../services/eventsApi"
+
 
 type AuthContextType = {
     isLoggedIn: boolean
-    login: (token: string) => void
+    user: User | null
+    isAuthLoading: boolean
+    login: (token: string) => Promise<void>
     logout: () => void
 }
 type AuthProviderProps = {
@@ -15,19 +20,57 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({children} : AuthProviderProps){
     const [isLoggedIn, setIsLoggedIn] = useState(Boolean(getToken()))
+    const [user, setUser] = useState<User | null>(null)
+    const [isAuthLoading, setIsAuthLoading] = useState(true)
 
-    function login(token: string){
-        saveToken(token)
+     useEffect(() => {
+    async function restoreAuth() {
+      const token = getToken()
+
+      if (!token) {
+        setIsAuthLoading(false)
+        return
+      }
+
+      try {
+        const profile = await getProfile()
+
+        setUser(profile)
         setIsLoggedIn(true)
+      } catch (error) {
+        console.error(
+          "Failed to restore authentication:",
+          error
+        )
+
+        removeToken()
+        setUser(null)
+        setIsLoggedIn(false)
+      } finally {
+        setIsAuthLoading(false)
+      }
+    }
+
+    restoreAuth()
+  }, [])
+
+    async function login(token: string){
+        saveToken(token)
+        const profile = await getProfile()
+        setUser(profile)
+        setIsLoggedIn(true)
+        
     }
 
     function logout(){
         removeToken()
+        setUser(null)
         setIsLoggedIn(false)
+        
     }
 
     return (
-        <AuthContext.Provider value={{isLoggedIn, login, logout}}>
+        <AuthContext.Provider value={{isLoggedIn, user, isAuthLoading, login, logout}}>
             {children}
         </AuthContext.Provider>
     )
