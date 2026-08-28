@@ -4,14 +4,13 @@ import type { SignUpUserFormData } from "../types"
 
 export function SignUpPage(){
 
-    const { register, handleSubmit, formState:{ errors, isSubmitting } } = useForm<SignUpUserFormData>()
+    const { register, handleSubmit, setError, formState:{ errors, isSubmitting } } = useForm<SignUpUserFormData>()
 
     // added by Jessie
     const navigate = useNavigate()
 
     async function onSubmit(data: SignUpUserFormData){
-        console.log(data)
-
+        try{
         // added by Jessie
         const response = await fetch("http://localhost:3001/api/users", {
             method: "POST",
@@ -23,13 +22,23 @@ export function SignUpPage(){
 
         // added by Jessie
         if (!response.ok) {
-            throw new Error("Registration failed")
+            if (response.status === 409) {
+                setError("root", { type: "server", message: "Email already exists." })
+                return
+            }
+            setError("root", { type: "server", message: "Registration failed. Please try again." })
+            return
         }
 
         // added by Jessie
         navigate("/signin")
+        }
+        catch(error){
+            console.error("Sign Up error:", error)
+            setError("root", { type: "server", message: "An unexpected error occurred. Please try again." })
+        }
     }
-
+    
     return(
         <section className="mx-auto max-w-md">
             <div className="card bg-base-100 shadow-md">
@@ -48,6 +57,7 @@ export function SignUpPage(){
                         <legend className="fieldset-legend">Email</legend>
                         <input type="email" placeholder="youremail@example.com" className={`input w-full ${errors.email ? "input-error": ""}`} {...register("email", {required: "Email is required", pattern: {value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: "Enter a valid email address"}})}/>
                         {errors.email && <p className="text-error text-sm">{errors.email.message}</p>}
+                        {errors.root && <p className="text-error text-sm">{errors.root.message}</p>}
                     </fieldset>
                     <fieldset className="fieldset">
                         <legend className="fieldset-legend">Password</legend>
@@ -57,6 +67,7 @@ export function SignUpPage(){
                     <button type="submit" className="btn btn-primary w-full" disabled={isSubmitting}>
                         {isSubmitting ? "Creating Account..." : "Create Account"}
                     </button>
+                    
                     <p className="text-center text-sm text-base-content/70">
                         Already have an account? <Link to="/signin" className="font-medium text-primary hover:underline">Sign In</Link>
                     </p>

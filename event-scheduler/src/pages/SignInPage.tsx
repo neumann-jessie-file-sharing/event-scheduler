@@ -6,7 +6,7 @@ import { useAuth } from "../context/AuthContext"
 
 export function SignInPage(){
 
-    const {register, handleSubmit, formState:{ errors, isSubmitting } } = useForm<SignInUserFormData>()
+    const {register, handleSubmit, setError, formState:{ errors, isSubmitting } } = useForm<SignInUserFormData>()
     const { login } = useAuth()
 
     // added by Jessie
@@ -15,28 +15,34 @@ export function SignInPage(){
     const from = location.state?.from?.pathname || "/"
 
     async function onSubmit(data: SignInUserFormData){
-        console.log(data)
+        
+        try{
+             // added by Jessie
+            const response = await fetch("http://localhost:3001/api/auth/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+            })
+            const responseData = await response.json()
+             if (!response.ok) {
+                if (response.status === 403) {
+                    setError("root", { type: "server", message: "Invalid email or password.",})
+                    return
+                }
 
-        // added by Jessie
-        const response = await fetch("http://localhost:3001/api/auth/login", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data),
-        })
+                setError("root", {type: "server", message: responseData.error ||"Unable to sign in. Please try again."})
+                return
+            }
 
-        // added by Jessie
-        if (!response.ok) {
-            throw new Error("Login failed")
-        }
-
-        // added by Jessie
-        const responseData = await response.json()
-
-        // added by Jessie
-        login(responseData.token)
-        navigate(from, { replace: true })
+            await login(responseData.token)
+            navigate(from, { replace: true })
+            
+            }catch(error){
+            setError("root", {type: "server", message: "An unexpected error occurred. Please try again."})
+            }
+       
     }
 
     return(
@@ -61,6 +67,11 @@ export function SignInPage(){
                         <button type="submit" className="btn btn-primary w-full" disabled={isSubmitting}>
                             {isSubmitting ? "Signing In..." : "Sign In"}
                         </button>
+                        {errors.root && (
+                            <div className="alert alert-error">
+                            <span>{errors.root.message}</span>
+                            </div>
+                        )}
 
                         <p className="text-center text-sm text-base-content/70">
                             Don't have an account? <Link to="/signup" className="font-medium text-primary hover:underline">Sign Up</Link>

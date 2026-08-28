@@ -1,21 +1,46 @@
+import { useEffect, useState } from "react"
 import { useParams , Link , useNavigate} from "react-router-dom"
+import type { Event } from "../types"
 import { useAuth } from "../context/AuthContext"
-import { mockEvents } from '../data/mocksEvents'
-import { mockCurrentUser } from "../data/mockCurrentUser"
-import { deleteEvent } from "../services/eventsApi" // added by Jessie
+import { getEventById,deleteEvent } from "../services/eventsApi" // added by Jessie
 
 
 export function EventDetailsPage(){
     const { id: eventId } = useParams()
     const navigate = useNavigate()
-     const { isLoggedIn } = useAuth()
-    const event = mockEvents.find((event) => event.id === Number(eventId))
-    //TODO: Replace mockEvents with actual data events from function of API call
-    const canManageEvent = isLoggedIn && event?.organizerId === mockCurrentUser.id 
-    //TODO: Replace with actual user ID from authentication context
-   
-    
+    const { isLoggedIn, user } = useAuth()
 
+    const [event, setEvent] = useState<Event | null>(null)
+    const [isLoading, setIsLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
+    
+   
+   
+    useEffect(() => {
+        async function loadEvent() {
+            if (!eventId){
+                setError("Invalid event ID")
+                setIsLoading(false)
+                return
+            }
+            try {
+                setIsLoading(true)
+                setError(null)
+                const data = await getEventById(Number(eventId))
+                setEvent(data)
+            }catch (error) {
+                console.error("Failed to load event:", error)
+            
+                setError( error instanceof Error ? error.message : "Failed to load event")
+            } finally {
+                setIsLoading(false)
+            }
+        }
+        loadEvent()
+    }, [eventId])
+    
+     const canManageEvent = isLoggedIn && user?.id === event?.organizerId
+    
 
 
     async function handleDeleteEvent(){
@@ -34,10 +59,40 @@ export function EventDetailsPage(){
 
         }catch (error) {
             console.error("Error deleting event:", error)
-            //show error feedback
+            setError(error instanceof Error ? error.message : "Failed to delete event")
         }
     }
 
+    if (isLoading) {
+        return (
+      <section className="mx-auto max-w-2xl">
+        <div className="card mt-6 bg-base-100 shadow-md">
+          <div className="card-body">
+            <div className="skeleton h-8 w-2/3" />
+            <div className="skeleton mt-4 h-4 w-full" />
+            <div className="skeleton h-4 w-4/5" />
+            <div className="skeleton mt-6 h-4 w-1/2" />
+            <div className="skeleton h-4 w-1/3" />
+          </div>
+        </div>
+      </section>
+    )
+    }
+
+    if (error) {return (
+      <section className="mx-auto max-w-2xl">
+        <div className="alert alert-error mt-6">
+          <span>{error}</span>
+        </div>
+
+        <Link
+          to="/"
+          className="btn btn-primary mt-6"
+        >
+          Back to events
+        </Link>
+      </section>
+    )}
 
     if(!event){
         return(

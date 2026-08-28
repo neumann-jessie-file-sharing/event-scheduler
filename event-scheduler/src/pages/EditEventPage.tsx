@@ -1,30 +1,53 @@
+import { useEffect, useState } from "react"
 import { useNavigate, useParams, Navigate } from "react-router-dom"
-import { mockCurrentUser } from "../data/mockCurrentUser"
 import { useForm } from "react-hook-form"
 import { useAuth } from "../context/AuthContext"
-import { mockEvents } from "../data/mocksEvents"
-import type { CreateEventFormData } from "../types"
-import { updateEvent } from "../services/eventsApi" // added by Jessie
+import type { CreateEventFormData, Event } from "../types"
+import { updateEvent, getEventById } from "../services/eventsApi" // added by Jessie
+
 
 
 export function EditEventPage(){
     const { id: eventId } = useParams()
     const navigate = useNavigate()
-    const { isLoggedIn } = useAuth()
+    const { isLoggedIn, user } = useAuth()
+    const { register, handleSubmit, reset, formState:{ errors, isSubmitting } } = useForm<CreateEventFormData>()
 
-    const event = mockEvents.find((event) => event.id === Number(eventId))
-    //TODO: Replace mockEvents with actual data events from function of API call
+    const [event, setEvent] = useState<Event | null>(null)
+    const [isLoading, setIsLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
 
-    const { register, handleSubmit, formState:{ errors, isSubmitting } } = useForm<CreateEventFormData>({
-        defaultValues: event ? {
-            title: event.title,
-            description: event.description,
-            date: event.date.slice(0, 16),
-            location: event.location,
-            latitude: event.latitude,
-            longitude: event.longitude
-        } : undefined
-    })
+    useEffect(() => {
+        async function fetchEvent() {
+            if (!eventId) {
+                setError("Invalid event ID")
+                setIsLoading(false)
+                return
+            }
+            try {
+                setIsLoading(true)
+                setError(null)
+                const fetchedEvent = await getEventById(Number(eventId))
+                setEvent(fetchedEvent)
+                reset({
+                    title: fetchedEvent.title,
+                    description: fetchedEvent.description,
+                    date: fetchedEvent.date.slice(0, 16),
+                    location: fetchedEvent.location,
+                    latitude: fetchedEvent.latitude,
+                    longitude: fetchedEvent.longitude,
+                })
+            
+            } catch (error) {
+                console.error(error)
+                setError(error instanceof Error ? error.message : "Failed to fetch event")
+            } finally {
+                setIsLoading(false)
+            }
+        }
+        fetchEvent()
+    }, [eventId, reset])
+
 
     async function onSubmit(data: CreateEventFormData){
         if(!event) return
@@ -36,7 +59,7 @@ export function EditEventPage(){
         }
 
         try {
-            console.log(eventData)
+            setError(null)
 
             // added by Jessie
             await updateEvent(event.id, eventData)
@@ -44,23 +67,53 @@ export function EditEventPage(){
             navigate(`/events/${event.id}`)
         } catch (error) {
             console.error(error)
+            setError(error instanceof Error ? error.message : "Failed to update event")
         }
     }
 
-    if(!event) {
+    if(isLoading) {
         return (
-            <section className="mx-auto max-w-2xl p-4">
+            <section className="mx-auto max-w-2xl">
                 <div className="card bg-base-100 shadow-md">
-                    <div className="card-body">
-                        <h1 className="text-3xl font-bold">Event not found</h1>
-                        <p className="mt-2 text-base-content/70">The event you are trying to edit does not exist.</p>
-                    </div>
+                <div className="card-body">
+                <div className="skeleton h-8 w-1/2" />
+
+                <div className="skeleton mt-4 h-12 w-full" />
+                <div className="skeleton h-24 w-full" />
+                <div className="skeleton h-12 w-full" />
+                <div className="skeleton h-12 w-full" />
                 </div>
-            </section>
+                </div>  
+        </section>
         )
     }
-    const canManageEvent = isLoggedIn && event.organizerId === mockCurrentUser.id
-    //TODO: Replace with actual user ID from authentication context
+
+    
+     if (error && !event) {
+    return (
+      <section className="mx-auto max-w-2xl">
+        <div className="alert alert-error">
+          <span>{error}</span>
+        </div>
+      </section>
+    )
+  }
+
+  if (!event) {
+    return (
+      <section className="mx-auto max-w-2xl">
+        <h1 className="text-3xl font-bold">
+          Event not found
+        </h1>
+      </section>
+    )
+  }
+
+  const canManageEvent =
+    isLoggedIn &&
+    user?.id === event.organizerId
+
+    
     if (!canManageEvent) {
         return <Navigate to={`/events/${event.id}`} replace />
     }
@@ -69,6 +122,12 @@ export function EditEventPage(){
             <div className="card bg-base-100 shadow-md">
                 <div className="card-body">
                     <h1 className="text-3xl font-bold">Edit Event</h1>
+                    {error && (
+                         <div className="alert alert-error mt-4">
+                         <span>{error}</span>
+                        </div>
+                    )}
+
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
                         <fieldset className="fieldset">
                             <legend className="fieldset-legend">Title</legend>

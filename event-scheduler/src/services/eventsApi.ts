@@ -1,10 +1,10 @@
-import type { CreateEventFormData, Event } from "../types"
+import type { CreateEventFormData, Event, EventsResponse, User } from "../types"
 import { getToken } from "./tokenStorage"
 
 const BASE_URL = "http://localhost:3001"
 
 // added by Jessie
-export async function getEvents(): Promise<Event[]> {
+export async function getEvents(): Promise<EventsResponse> {
   const response = await fetch(`${BASE_URL}/api/events`)
 
   if (!response.ok) {
@@ -43,6 +43,16 @@ export async function createEvent(
   }
 
   return data
+}
+
+export async function getEventById(id: number): Promise<Event> {
+  const response = await fetch(`${BASE_URL}/api/events/${id}`)
+
+  if (!response.ok) {
+    throw new Error(`Failed to load event (${response.status})`)
+  }
+
+  return response.json()
 }
 
 // added by Jessie
@@ -96,4 +106,29 @@ export async function deleteEvent(id: number): Promise<void> {
   if (!response.ok) {
     throw new Error(`Failed to delete event (${response.status})`)
   }
+}
+
+export async function getProfile(): Promise<User> {
+  const token = getToken()
+
+  if (!token) {
+    throw new Error("No authentication token")
+  }
+
+  const response = await fetch(
+    `${BASE_URL}/api/auth/profile`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  )
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to load profile (${response.status})`
+    )
+  }
+
+  return response.json()
 }

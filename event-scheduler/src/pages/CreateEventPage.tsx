@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { useNavigate } from "react-router-dom"
 import type { CreateEventFormData } from "../types"
@@ -8,6 +9,7 @@ export function CreateEventPage(){
 
     const {register, handleSubmit, reset, formState:{ errors, isSubmitting}} = useForm<CreateEventFormData>()
     const navigate = useNavigate()
+    const [submitError, setSubmitError] = useState<string | null>(null)
 
     async function onSubmit(data: CreateEventFormData){
 
@@ -17,20 +19,15 @@ export function CreateEventPage(){
             longitude: Number.isNaN(data.longitude) ? undefined : data.longitude,   
         }
 
+        setSubmitError(null)
         try {
-            console.log(eventData)
-
             // added by Jessie
             await createEvent(eventData)
-
-            //Later, only after API call is successful, navigate to the events list page
-            navigate("/")
-
             reset()
-
-        }catch (error) {
-            console.error("Error creating event:", error)
-            //show error feedback
+            navigate("/")
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "Failed to create event"
+            setSubmitError(message)
         }       
         
     }
@@ -72,6 +69,7 @@ export function CreateEventPage(){
                             <input type="number" step="any" placeholder="13.4050" className={`input w-full ${errors.longitude ? "input-error" : ""}`} {...register("longitude", { valueAsNumber: true, min: { value: -180, message: "Minimum longitude is -180" }, max: { value: 180, message: "Maximum longitude is 180" } })}/>
                             {errors.longitude && <p className="text-error text-sm mt-1">{errors.longitude.message}</p>}
                         </fieldset>
+                        {submitError && <p className="text-error text-sm">{submitError}</p>}
                         <button type="submit" className="btn btn-primary w-full" disabled={isSubmitting}>{isSubmitting ? "Creating..." : "Create Event"}</button>
                     </form>
                 </div>
